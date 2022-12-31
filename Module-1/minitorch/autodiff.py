@@ -21,9 +21,16 @@ def central_difference(f: Any, *vals: Any, arg: int = 0, epsilon: float = 1e-6) 
 
     Returns:
         An approximation of $f'_i(x_0, \ldots, x_{n-1})$
+    
+    实现中心差分公式 (f(x+epsilon/2)-f(x-epsilon/2))/epsilon
     """
-    # TODO: Implement for Task 1.1.
-    raise NotImplementedError("Need to implement for Task 1.1")
+    tmp_val = list(vals[:])
+    tmp_val[arg] += epsilon/2
+    forward_value = f(*tmp_val)
+    tmp_val[arg] -= epsilon
+    backward_value = f(*tmp_val)
+
+    return (forward_value-backward_value) / epsilon
 
 
 variable_count = 1
