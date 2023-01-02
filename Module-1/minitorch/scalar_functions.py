@@ -155,7 +155,7 @@ class Sigmoid(ScalarFunction):
 
     @staticmethod
     def backward(ctx: Context, d_output: float) -> float:
-        res = ctx.saved_values
+        (res,) = ctx.saved_values
         return operators.mul(d_output, operators.mul(res, operators.add(1, operators.neg(res))))
 
 
@@ -169,7 +169,7 @@ class ReLU(ScalarFunction):
 
     @staticmethod
     def backward(ctx: Context, d_output: float) -> float:
-        a = ctx.saved_values
+        (a,) = ctx.saved_values
         return operators.relu_back(a, d_output)
 
 
@@ -184,7 +184,7 @@ class Exp(ScalarFunction):
 
     @staticmethod
     def backward(ctx: Context, d_output: float) -> float:
-        res = ctx.saved_values
+        (res,) = ctx.saved_values
         return operators.mul(res, d_output)
 
 
@@ -197,6 +197,7 @@ class LT(ScalarFunction):
 
     @staticmethod
     def backward(ctx: Context, d_output: float) -> Tuple[float, float]:
+        # 不会被用到
         return 0.0, 0.0
 
 
@@ -209,4 +210,5 @@ class EQ(ScalarFunction):
 
     @staticmethod
     def backward(ctx: Context, d_output: float) -> Tuple[float, float]:
+        # 不会被用到
         return 0.0, 0.0
