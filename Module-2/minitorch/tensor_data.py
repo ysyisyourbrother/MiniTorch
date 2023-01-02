@@ -18,11 +18,13 @@ class IndexingError(RuntimeError):
     "Exception raised for indexing errors."
     pass
 
-
+# Storage是存储Tensor数据的连续数组,通过其他张量的参数比如stride可以进一步划分维度和形状
 Storage: TypeAlias = npt.NDArray[np.float64]
 OutIndex: TypeAlias = npt.NDArray[np.int32]
 Index: TypeAlias = npt.NDArray[np.int32]
 Shape: TypeAlias = npt.NDArray[np.int32]
+# Stride是指在指定维度下从一个元素跳到下一个元素所必需的步长。Strides是多个维度stride的集合。
+# 通过设置strides来进一步划分维度，这样设计可以方便地调节矩阵的维度信息
 Strides: TypeAlias = npt.NDArray[np.int32]
 
 UserIndex: TypeAlias = Sequence[int]
@@ -43,8 +45,10 @@ def index_to_position(index: Index, strides: Strides) -> int:
         Position in storage
     """
 
-    # TODO: Implement for Task 2.1.
-    raise NotImplementedError("Need to implement for Task 2.1")
+    position = 0
+    for ind, strides in zip(index, strides):
+        position += ind * strides
+    return position
 
 
 def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
@@ -60,8 +64,15 @@ def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
         out_index : return index corresponding to position.
 
     """
-    # TODO: Implement for Task 2.1.
-    raise NotImplementedError("Need to implement for Task 2.1")
+    # Build the strides array
+    strides = [1]   # 第一个维度stride都为1
+    for i in range(len(shape)-1):  # 后面的维度通过累乘获得
+        strides.append(strides[-1] * shape[i])
+    
+    # 从后往前计算out_index
+    for i in range(len(strides)-1, -1, -1):
+        out_index[i] = ordinal // strides[i]
+        ordinal = ordinal % strides[i]
 
 
 def broadcast_index(
@@ -217,14 +228,15 @@ class TensorData:
 
         Returns:
             New `TensorData` with the same storage and a new dimension order.
+
+        保持TensorData连续数据不变,重新调整维度的顺序
         """
         assert list(sorted(order)) == list(
             range(len(self.shape))
         ), f"Must give a position to each dimension. Shape: {self.shape} Order: {order}"
 
-        # TODO: Implement for Task 2.1.
-        raise NotImplementedError("Need to implement for Task 2.1")
-
+        return TensorData(self._storage, tuple([self.shape[i] for i in order]), tuple([self.strides[i] for i in order]))
+    
     def to_string(self) -> str:
         s = ""
         for index in self.indices():
