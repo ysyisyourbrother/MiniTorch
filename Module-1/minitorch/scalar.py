@@ -36,7 +36,7 @@ class ScalarHistory:
 
     """
 
-    last_fn: Optional[Type[ScalarFunction]] = None
+    last_fn: Optional[Type[ScalarFunction]] = None  # 生成当前Scalar的最后一个Operator
     ctx: Optional[Context] = None
     inputs: Sequence[Scalar] = ()
 
@@ -139,6 +139,9 @@ class Scalar:
 
         Args:
             x: value to be accumulated
+
+        derivative(导数)是用来梯度下降更新参数用的。只用模型的参数(叶子节点)才需要累积导数.
+        而中间的activations计算出来的导数会被链式法则传递到下游,而不需要进行累积.
         """
         assert self.is_leaf(), "Only leaf variables can have derivatives."
         if self.derivative is None:
@@ -158,13 +161,24 @@ class Scalar:
         return self.history.inputs
 
     def chain_rule(self, d_output: Any) -> Iterable[Tuple[Variable, Any]]:
+        """chain_rule 调用scalar function的backward方法计算local derivatives
+        同时递归返回后面需要继续求导的scalar
+        """
         h = self.history
         assert h is not None
         assert h.last_fn is not None
         assert h.ctx is not None
 
-        # TODO: Implement for Task 1.3.
-        raise NotImplementedError("Need to implement for Task 1.3")
+        chain_list = []
+        backward_value = h.last_fn.backward(h.ctx, d_output)
+        if isinstance(backward_value, tuple) is False:
+            backward_value = (backward_value,)
+        for i, v in enumerate(h.inputs):
+            # 过滤掉不需要求导的constants
+            if not v.is_constant():
+                chain_list.append((v, backward_value[i]))
+
+        return chain_list
 
     def backward(self, d_output: Optional[float] = None) -> None:
         """
