@@ -44,6 +44,7 @@ class ScalarHistory:
 # ## Task 1.2 and 1.4
 # Scalar Forward and Backward
 
+# 用来生成每个Variable的unique_id
 _var_count = 0
 
 
