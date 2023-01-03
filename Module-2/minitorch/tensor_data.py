@@ -21,6 +21,7 @@ class IndexingError(RuntimeError):
 # Storage是存储Tensor数据的连续数组,通过其他张量的参数比如stride可以进一步划分维度和形状
 Storage: TypeAlias = npt.NDArray[np.float64]
 OutIndex: TypeAlias = npt.NDArray[np.int32]
+# 多维index
 Index: TypeAlias = npt.NDArray[np.int32]
 Shape: TypeAlias = npt.NDArray[np.int32]
 # Stride是指在指定维度下从一个元素跳到下一个元素所必需的步长。Strides是多个维度stride的集合。
@@ -65,12 +66,10 @@ def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
 
     """
     # Build the strides array
-    strides = [1]   # 第一个维度stride都为1
-    for i in range(len(shape)-1):  # 后面的维度通过累乘获得
-        strides.append(strides[-1] * shape[i])
+    strides = strides_from_shape(shape)
     
-    # 从后往前计算out_index
-    for i in range(len(strides)-1, -1, -1):
+    # 从前往后计算out_index, 因为前面的stride最大
+    for i in range(0, len(strides)):
         out_index[i] = ordinal // strides[i]
         ordinal = ordinal % strides[i]
 
@@ -95,7 +94,12 @@ def broadcast_index(
         None
     """
     # TODO: Implement for Task 2.2.
-    raise NotImplementedError("Need to implement for Task 2.2")
+    for i, sh in enumerate(shape):
+        if sh > 1:
+            out_index[i] = big_index[i + (len(big_shape) - len(shape))]
+        else:
+            out_index[i] = 0
+    return None
 
 
 def shape_broadcast(shape1: UserShape, shape2: UserShape) -> UserShape:
@@ -112,11 +116,37 @@ def shape_broadcast(shape1: UserShape, shape2: UserShape) -> UserShape:
     Raises:
         IndexingError : if cannot broadcast
     """
+    # 两个Tensor的维度并不相同无法进行运算，但如果符合一定的规则，
+    # 那么可以自动的进行维度扩展，来实现Tensor的计算。
+    # 对于参与运算的两个tensor每个维度满足：
+    # 1. 每个参与计算的Tensor至少有一个维度
+    # 2. 其中一个维度是1
+    # 3. 其中一个维度不存在
+
     # TODO: Implement for Task 2.2.
-    raise NotImplementedError("Need to implement for Task 2.2")
+    m = max(len(shape1), len(shape2))
+    res = [0] * m
+    shape1_rev, shape2_rev = list(reversed(shape1)), list(reversed(shape2))
+    for i in range(m):
+        # 如果两个shape长度不同，则用长的补全
+        if i >= len(shape1):
+            res[i] = shape2_rev[i]
+        elif i >= len(shape2):
+            res[i] = shape1_rev[i]
+        else:
+            res[i] = max(shape1_rev[i], shape2_rev[i])
+            if shape1_rev[i] != res[i] and shape1_rev[i] != 1:
+                raise IndexingError("Broadcast failure")
+            if shape2_rev[i] != res[i] and shape2_rev[i] != 1:
+                raise IndexingError("Broadcast failure")
+    return tuple(reversed(res))
 
 
 def strides_from_shape(shape: UserShape) -> UserStrides:
+    """
+    从shape构建stride
+    最后一个维度的stride固定为1,其他维度的stride通过累乘得到
+    """
     layout = [1]
     offset = 1
     for s in reversed(shape):
