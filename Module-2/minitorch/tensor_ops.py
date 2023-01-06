@@ -269,7 +269,17 @@ def tensor_map(fn: Callable[[float], float]) -> Any:
         in_strides: Strides,
     ) -> None:
         # TODO: Implement for Task 2.3.
-        raise NotImplementedError("Need to implement for Task 2.3")
+        out_index = np.zeros(len(out_shape), np.int32)
+        in_index = np.zeros(len(in_shape), np.int32)
+        for i in range(len(out)):
+            # 将out_storage一维数组的下标转换为多维out_index
+            to_index(i, out_shape, out_index)
+            # 如果大小不同，将in_shape拓展到out_shape上
+            broadcast_index(out_index, out_shape, in_shape, in_index)
+            # 如果大小不同，有可能会出现同一个j对应多个o的情况
+            o = index_to_position(out_index, out_strides)
+            j = index_to_position(in_index, in_strides)
+            out[o] = fn(in_storage[j])
 
     return _map
 
@@ -319,7 +329,18 @@ def tensor_zip(fn: Callable[[float, float], float]) -> Any:
         b_strides: Strides,
     ) -> None:
         # TODO: Implement for Task 2.3.
-        raise NotImplementedError("Need to implement for Task 2.3")
+        out_index = np.zeros(len(out_shape), np.int32)
+        a_index = np.zeros(len(a_shape), np.int32)
+        b_index = np.zeros(len(b_shape), np.int32)
+
+        for i in range(len(out)):
+            to_index(i, out_shape, out_index)
+            o = index_to_position(out_index, out_strides)
+            broadcast_index(out_index, out_shape, a_shape, a_index)
+            j = index_to_position(a_index, a_strides)
+            broadcast_index(out_index, out_shape, b_shape, b_index)
+            k = index_to_position(b_index, b_strides)
+            out[o] = fn(a_storage[j], b_storage[k])
 
     return _zip
 
@@ -355,7 +376,15 @@ def tensor_reduce(fn: Callable[[float, float], float]) -> Any:
         reduce_dim: int,
     ) -> None:
         # TODO: Implement for Task 2.3.
-        raise NotImplementedError("Need to implement for Task 2.3")
+        # reduce 不需要进行broadcast
+        p_index = np.zeros(len(out_shape), np.int32)
+        for p in range(len(out)):
+            to_index(p, out_shape, p_index)
+            pq_index = p_index.copy()
+            for q in range(a_shape[reduce_dim]):
+                pq_index[reduce_dim] = q
+                out[p] = fn(
+                    out[p], a_storage[index_to_position(pq_index, a_strides)])
 
     return _reduce
 

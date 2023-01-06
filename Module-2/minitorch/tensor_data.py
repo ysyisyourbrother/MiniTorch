@@ -67,7 +67,6 @@ def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
     """
     # Build the strides array
     strides = strides_from_shape(shape)
-    
     # 从前往后计算out_index, 因为前面的stride最大
     for i in range(0, len(strides)):
         out_index[i] = ordinal // strides[i]
@@ -95,9 +94,9 @@ def broadcast_index(
     """
     # TODO: Implement for Task 2.2.
     for i, sh in enumerate(shape):
-        if sh > 1:
+        if sh > 1:  # 如果shape大于1，说明两个张量在这个维度上的shape是相同的（根据broadcast规则）因此直接使用index
             out_index[i] = big_index[i + (len(big_shape) - len(shape))]
-        else:
+        else:   # 如果这个维度的shape只有1，那么index只能为0
             out_index[i] = 0
     return None
 
