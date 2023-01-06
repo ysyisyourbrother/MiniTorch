@@ -56,7 +56,6 @@ def max(x: float, y: float) -> float:
 
 def is_close(x: float, y: float) -> float:
     "$f(x) = |x - y| < 1e-2$"
-    # print("is_close:", math.fabs(x-y), x, y)
     if abs(x-y) < 1e-2:
         return 1.0
     else:

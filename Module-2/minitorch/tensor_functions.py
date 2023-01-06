@@ -175,11 +175,16 @@ class Exp(Function):
 class Sum(Function):
     @staticmethod
     def forward(ctx: Context, a: Tensor, dim: Tensor) -> Tensor:
+        # Implement for Task 2.3.
         ctx.save_for_backward(a.shape, dim)
-        return a.f.add_reduce(a, int(dim.item()))
+        if dim is not None:
+            return a.f.add_reduce(a, int(dim.item()))
+        else:
+            return a.f.add_reduce(a.contiguous().view(int(operators.prod(a.shape))), 0)
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, float]:
+        # Implement for Task 2.4.
         a_shape, dim = ctx.saved_values
         return grad_output, 0.0
 
@@ -232,14 +237,15 @@ class Permute(Function):
     @staticmethod
     def forward(ctx: Context, a: Tensor, order: Tensor) -> Tensor:
         # Implement for Task 2.3.
-        ctx.save_for_backward(order)
-        return tensor(a._tensor.permute(*order), backend=a.backend)
+        order_list = order.to_numpy().astype(int).tolist()
+        ctx.save_for_backward(order_list)
+        return a._new(a._tensor.permute(*order_list))
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, float]:
         # Implement for Task 2.4.
-        order = ctx.saved_values
-        return Tensor(grad_output._tensor.permute(*order), backend=grad_output.backend)
+        (order_list,) = ctx.saved_values
+        return grad_output._new(grad_output._tensor.permute(*order_list)), 0.0
 
 
 class View(Function):

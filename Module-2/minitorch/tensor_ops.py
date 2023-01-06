@@ -268,7 +268,7 @@ def tensor_map(fn: Callable[[float], float]) -> Any:
         in_shape: Shape,
         in_strides: Strides,
     ) -> None:
-        # TODO: Implement for Task 2.3.
+        # Implement for Task 2.3.
         out_index = np.zeros(len(out_shape), np.int32)
         in_index = np.zeros(len(in_shape), np.int32)
         for i in range(len(out)):
@@ -328,7 +328,7 @@ def tensor_zip(fn: Callable[[float, float], float]) -> Any:
         b_shape: Shape,
         b_strides: Strides,
     ) -> None:
-        # TODO: Implement for Task 2.3.
+        # Implement for Task 2.3.
         out_index = np.zeros(len(out_shape), np.int32)
         a_index = np.zeros(len(a_shape), np.int32)
         b_index = np.zeros(len(b_shape), np.int32)
@@ -375,7 +375,7 @@ def tensor_reduce(fn: Callable[[float, float], float]) -> Any:
         a_strides: Strides,
         reduce_dim: int,
     ) -> None:
-        # TODO: Implement for Task 2.3.
+        # Implement for Task 2.3.
         # reduce 不需要进行broadcast
         p_index = np.zeros(len(out_shape), np.int32)
         for p in range(len(out)):

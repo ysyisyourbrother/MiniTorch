@@ -101,7 +101,9 @@ def backpropagate(variable: Variable, deriv: Any) -> None:
     queue.append((variable, deriv))
     while len(queue) != 0:
         (var, d) = queue.pop(0)
-        if var.is_leaf():
+        if var.is_constant():
+            continue
+        elif var.is_leaf():
             var.accumulate_derivative(d)
         else:
             follow_vars = var.chain_rule(d)
